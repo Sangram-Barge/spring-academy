@@ -1,10 +1,10 @@
 package example.cashcard;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/cashcards")
@@ -20,5 +20,14 @@ public class CashCardController {
   public ResponseEntity<CashCard> findById(@PathVariable Long cardId) {
     return cashCardRepository.findById(cardId)
         .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @PostMapping
+  public ResponseEntity<Void> createCashCard(@RequestBody CashCard cashCard, UriComponentsBuilder ucb) {
+    CashCard createdCashCard = cashCardRepository.save(cashCard);
+    URI createdPathUri = ucb.path("cashcards/{id}")
+        .buildAndExpand(createdCashCard.id())
+        .toUri();
+    return ResponseEntity.created(createdPathUri).build();
   }
 }
