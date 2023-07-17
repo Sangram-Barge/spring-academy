@@ -2,6 +2,7 @@ package example.cashcard;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import net.minidev.json.JSONArray;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +30,7 @@ class CashcardApplicationTests {
 		assertThat(id).isNotNull();
 		assertThat(id).isEqualTo(99);
 		assertThat(amount).isNotNull();
-		assertThat(amount).isEqualTo(1000.0);
+		assertThat(amount).isEqualTo(123.45);
 	}
 
 	@Test
@@ -54,5 +55,47 @@ class CashcardApplicationTests {
 		var amount = documentContext.read("$.amount");
 		assertThat(id).isNotNull();
 		assertThat(amount).isEqualTo(25000.0);
+	}
+
+	@Test
+	public void shouldReturnAllCashCardsWhenListIsRequested() {
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext context = JsonPath.parse(response.getBody());
+		int length = context.read("$.length()");
+		assertThat(length).isEqualTo(3);
+		JSONArray ids = context.read("$..id");
+		assertThat(ids).containsExactlyInAnyOrder(99, 100, 101);
+	}
+
+	@Test
+	public void shouldReturnPageOfCashCards() {
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards?page=0&size=1", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext context = JsonPath.parse(response.getBody());
+		JSONArray page = context.read("$[*]");
+		assertThat(page.size()).isEqualTo(1);
+	}
+
+	@Test
+	public void shouldReturnSortedCashCardsDescending() {
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext context = JsonPath.parse(response.getBody());
+		JSONArray page = context.read("$[*]");
+		assertThat(page.size()).isEqualTo(1);
+		var amount = context.read("$[0].amount");
+		assertThat(amount).isEqualTo(150.00);
+	}
+
+	@Test
+	public void shouldReturnSortedCashCardsAscending() {
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards?page=0&size=1&sort=amount,asc", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext context = JsonPath.parse(response.getBody());
+		JSONArray page = context.read("$[*]");
+		assertThat(page.size()).isEqualTo(1);
+		var amount = context.read("$[0].amount");
+		assertThat(amount).isEqualTo(1.00);
 	}
 }
