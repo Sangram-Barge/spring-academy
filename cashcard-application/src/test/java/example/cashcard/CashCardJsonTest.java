@@ -22,15 +22,15 @@ public class CashCardJsonTest {
   @BeforeEach
   void setup() {
     cashCards = Arrays.array(
-        new CashCard(99L, 123.45),
-        new CashCard(100L, 1.00),
-        new CashCard(101L, 150.00)
+        new CashCard(99L, 123.45, "sangram"),
+        new CashCard(100L, 1.00, "sangram"),
+        new CashCard(101L, 150.00, "sangram")
     );
   }
 
   @Test
   public void cashCardSerializationTest() throws IOException {
-    CashCard cashCard = new CashCard(99L, 123.45);
+    CashCard cashCard = new CashCard(99L, 123.45, "sangram");
     assertThat(json.write(cashCard)).isStrictlyEqualToJson("contract.json");
     assertThat(json.write(cashCard)).hasJsonPathNumberValue("@.id");
     assertThat(json.write(cashCard)).extractingJsonPathNumberValue("id").isEqualTo(99);
@@ -43,10 +43,11 @@ public class CashCardJsonTest {
     String expected = """
         {
           "id": 99,
-          "amount": 123.45
+          "amount": 123.45,
+          "owner": "sangram"
         }
         """;
-    assertThat(json.parse(expected)).isEqualTo(new CashCard(99L, 123.45));
+    assertThat(json.parse(expected)).isEqualTo(new CashCard(99L, 123.45, "sangram"));
     assertThat(json.parseObject(expected).id()).isEqualTo(99);
     assertThat(json.parseObject(expected).amount()).isEqualTo(123.45);
   }
