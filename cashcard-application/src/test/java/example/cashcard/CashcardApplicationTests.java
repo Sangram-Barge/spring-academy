@@ -98,4 +98,16 @@ class CashcardApplicationTests {
 		var amount = context.read("$[0].amount");
 		assertThat(amount).isEqualTo(1.00);
 	}
+
+	@Test
+	public void shouldReturnSortedCashCardsWithNoParameters() {
+		ResponseEntity<String> response = restTemplate.getForEntity("/cashcards", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		DocumentContext context = JsonPath.parse(response.getBody());
+		JSONArray page = context.read("$[*]");
+		assertThat(page.size()).isEqualTo(3);
+		JSONArray amounts = context.read("$..amount");
+		assertThat(amounts).containsExactlyInAnyOrder(1.00, 123.45, 150.00);
+	}
 }
