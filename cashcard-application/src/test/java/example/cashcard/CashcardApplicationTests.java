@@ -118,4 +118,22 @@ class CashcardApplicationTests {
 		response = restTemplate.withBasicAuth("sangram", "bas pass").getForEntity("/cashcards/99", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
+
+	@Test
+	public void shouldRejectUsersWhoAreNotOwners() {
+		ResponseEntity<String> response = restTemplate.withBasicAuth("test", "test").getForEntity("/cashcards/99", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
+	public void userShouldNotBeAbleToAccessOtherUsersData() {
+		ResponseEntity<String> response = restTemplate.withBasicAuth("sangram", "abc123").getForEntity("/cashcards/102", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	public void userShouldBeAbleToCreateCashCardsForItself() {
+		ResponseEntity<Void> response	= restTemplate.withBasicAuth("anushree", "anu").postForEntity("/cashcards", new CashCard(null, 10000.0, null), Void.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+	}
 }

@@ -18,7 +18,7 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.authorizeHttpRequests()
         .requestMatchers("/cashcards/**")
-        .authenticated()
+        .hasRole("CARD-OWNER")
         .and()
         .csrf().disable()
         .httpBasic();
@@ -33,10 +33,18 @@ public class SecurityConfig {
   @Bean
   public UserDetailsService testOnlyUsers(PasswordEncoder passwordEncoder) {
     User.UserBuilder user = User.builder();
-    UserDetails details = user.username("sangram")
+    UserDetails sangram = user.username("sangram")
         .password(passwordEncoder.encode("abc123"))
-        .roles()
+        .roles("CARD-OWNER")
         .build();
-    return new InMemoryUserDetailsManager(details);
+    UserDetails unAuthUser = user.username("test")
+        .password(passwordEncoder.encode("test"))
+        .roles("NON-CARD-OWNER")
+        .build();
+    UserDetails anushree = user.username("anushree")
+        .password(passwordEncoder.encode("anu"))
+        .roles("CARD-OWNER")
+        .build();
+    return new InMemoryUserDetailsManager(sangram, anushree, unAuthUser);
   }
 }
